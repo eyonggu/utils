@@ -1,0 +1,17 @@
+#!/usr/bin/expect --
+#
+if { [llength $argv] != 2 } {
+   puts "usage: $argv0 local_file remote_file"
+   exit 1
+}
+
+set local_file [lindex $argv 0]
+set remote_file [lindex $argv 1]
+
+set timeout -1
+spawn scp $local_file $env(SCP_USERNAME)@$env(SCP_REMOTE_HOST):$remote_file
+expect "Password:"
+send "$env(SCP_PASSWORD)\r"
+expect "100%"
+interact
+
