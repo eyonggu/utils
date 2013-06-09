@@ -31,6 +31,7 @@
 	autocrlf = input
 	safecrlf = true
 	excludesfile = ~/.gitignore
+	editor = vi
 
 [difftool]
 	prompt = false
