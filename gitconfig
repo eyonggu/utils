@@ -8,7 +8,7 @@
 	conflictstyle = diff3
 [diff]
 	tool = meld
-	external = /home/eyonggu/sbin/git_diff_wrapper
+	external = /home/eyonggu/utils/git_diff_wrapper
 [alias]
         co = checkout
         ci = commit
