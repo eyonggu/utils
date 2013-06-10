@@ -1,13 +1,15 @@
-#!/bin/bash
+#!/bin/bash -x
 
 PROGRAM_NAME=$(basename $0)
 
-CURRENT_DIR="./"
+ROOT_PATH="."
+EXCLUDED_PATH=
 
 usage() {
     echo ""
-    echo "$PROGRAM_NAME [-f] dir1 dir2 ... "
-    echo "  -f   with full path in cscope database "
+    echo "$PROGRAM_NAME [-f] [-e pattern] dir1 dir2 ... "
+    echo "  -f             with full path in cscope database "
+    echo "  -e pattern     exclude directories whose name matches pattern "
     exit 1
 }
 
@@ -18,10 +20,11 @@ do
 done
 
 #parse options
-while getopts "f" Option 
+while getopts "fe:" OPTION 
 do
-   case $Option in
-      f ) CURRENT_DIR=$(pwd);;
+   case $OPTION in
+      f ) ROOT_PATH=$(pwd);;
+      e ) EXCLUDED_PATH="*/$OPTARG";;
       ? ) usage;;
    esac
 done
@@ -36,9 +39,7 @@ fi
 #for dir in "$*"
 while [ $# -gt 0 ]
 do
-   #find . -wholename './*test' -prune -o -iname "*.h" -o -iname "*.cpp" -o -iname "*.c" -o -iname "*.sig" | grep -v 'test$' > cscope.files
-
-   find $CURRENT_DIR/$1 -iname "*.h" -o -iname "*.c" -o -iname "*.cpp" -o -iname "*.cc" >> cscope.files
+   find $ROOT_PATH/$1 -wholename "$EXCLUDED_PATH" -prune -o \( -iname "*.h" -o -iname "*.c" -o -iname "*.cpp" -o -iname "*.cc" \) -print >> cscope.files
    shift
 done
 
@@ -50,7 +51,5 @@ ctags -L cscope.files --c++-kinds=+p --fields=+iaS --extra=+q
 
 #for filelookup plugin
 echo -e "!_TAG_FILE_SORTED\t2\t/2=foldcase/" > filenametags
-find . \( -iname "*.h" -o -iname "*.cpp" -o -iname "*.c" \) -printf "%f\t%p\t1\n" | sort -f >> ./filenametags
+find . \( -iname "*.h" -o -iname "*.c" -o -iname "*.cpp" -o -iname "*.cc" \) -printf "%f\t%p\t1\n" | sort -f >> ./filenametags
 
-#FIND -prune syntax:
-#find [path] [tests for stuff you want to prune] -prune -o [the stuff you'd normally put after the path]
