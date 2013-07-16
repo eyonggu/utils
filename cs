@@ -4,25 +4,22 @@ PROGRAM_NAME=$(basename $0)
 
 ROOT_PATH="."
 EXCLUDED_PATH=
+APPEND_DIR=
 
 usage() {
     echo ""
     echo "$PROGRAM_NAME [-f] [-e pattern] dir1 dir2 ... "
-    echo "  -f             with full path in cscope database "
+    echo "  -a dir         append dir to the database "
     echo "  -e pattern     exclude directories whose name matches pattern "
+    echo "  -f             with full path in cscope database "
     exit 1
 }
 
-#clean old database files
-for file in cscope.files cscope.out cscope.in.out cscope.po.out fileametags tags
-do
-  rm -rf $file 
-done
-
 #parse options
-while getopts "fe:" OPTION 
+while getopts "a:e:f" OPTION 
 do
    case $OPTION in
+      a ) APPEND_DIR=$OPTARG;;
       f ) ROOT_PATH=$(pwd);;
       e ) EXCLUDED_PATH="*/$OPTARG";;
       ? ) usage;;
@@ -30,18 +27,31 @@ do
 done
 shift $(($OPTIND - 1))
 
-#at lest one dir is provided
-if [ $# -lt 1 ]; then
-   usage
-   exit 1
-fi
-
-#for dir in "$*"
-while [ $# -gt 0 ]
+#remove old database files
+for file in cscope.out cscope.in.out cscope.po.out fileametags tags
 do
-   find $ROOT_PATH/$1 -wholename "$EXCLUDED_PATH" -prune -o \( -iname "*.h" -o -iname "*.c" -o -iname "*.cpp" -o -iname "*.cc" \) -print >> cscope.files
-   shift
+  rm -rf $file 
 done
+
+if [ -n "$APPEND_DIR" ]; then
+    find $ROOT_PATH/$APPEND_DIR \( -iname "*.h" -o -iname "*.c" -o -iname "*.cpp" -o -iname "*.cc" \) -print >> cscope.files
+else
+    #at lest one dir is provided
+    if [ $# -lt 1 ]; then
+        usage
+        exit 1
+    fi
+
+    #remove old file list
+    rm -rf cscope.files 
+
+    #for dir in "$*"
+    while [ $# -gt 0 ]
+    do
+        find $ROOT_PATH/$1 -wholename "$EXCLUDED_PATH" -prune -o \( -iname "*.h" -o -iname "*.c" -o -iname "*.cpp" -o -iname "*.cc" \) -print >> cscope.files
+        shift
+    done
+fi
 
 #TODO: add common files
 
