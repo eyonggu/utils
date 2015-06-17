@@ -46,6 +46,19 @@ function substring(line, start, end) {
     return content
 }
 
+function print_key_mat(keyname, keylen) {
+    key = keyname ": "
+    while (keylen > 0) {
+        getline
+        for (i = 0; i < 16 && keylen > 0; i++) {
+            key = key $(6+i)
+            keylen--
+        }
+    }
+
+    printf "\t%s\n", key
+}
+
 #A new connection up 
 /initiating IKE_SA/ {
     if (first) {
@@ -68,36 +81,8 @@ function substring(line, start, end) {
     spi_r = "Responder's SPI: " $6 $7 $8 $9 $10 $11 $12 $13
 }
 
-/Sk_ai secret/ {
-    getline
-    SK_ai = "SK_ai: " $6 $7 $8 $9 $10 $11 $12 $13 $14 $15 $16 $17 $18 $19 $20 $21
-    getline
-    SK_ai = SK_ai $6 $7 $8 $9
-
-    printf "\t%s\n", SK_ai
-}
-
-/Sk_ar secret/ {
-    getline
-    SK_ar = "Sk_ar: " $6 $7 $8 $9 $10 $11 $12 $13 $14 $15 $16 $17 $18 $19 $20 $21
-    getline
-    SK_ar = SK_ar $6 $7 $8 $9
-
-    printf "\t%s\n", SK_ar
-}
-
-/Sk_ei secret/ {
-    getline
-    SK_ei = "Sk_ei: " $6 $7 $8 $9 $10 $11 $12 $13 $14 $15 $16 $17 $18 $19 $20 $21
-
-    printf "\t%s\n", SK_ei
-}
-
-/Sk_er secret/ {
-    getline
-    SK_er = "Sk_er: " $6 $7 $8 $9 $10 $11 $12 $13 $14 $15 $16 $17 $18 $19 $20 $21
-
-    printf "\t%s\n", SK_er
+/Sk_ai|Sk_ar|Sk_ei|Sk_er secret/ {
+    print_key_mat($5, $8)
 }
 
 /selected proposal/ {
@@ -167,7 +152,7 @@ function dump_xfrm_msg() {
         # printf "\t\n"
     # }
 
-    if (verbose) {
+    if (1) {
         #message starts from next line
         getline
         dump_xfrm_msg()
